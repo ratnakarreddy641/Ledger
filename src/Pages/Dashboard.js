@@ -1,23 +1,25 @@
 import React, { useState } from 'react'
-import { auth ,db} from '../Google/config';
+import { auth, db } from '../Google/config';
 import Memo from '../Components/Memo';
-import { doc, getDoc } from "firebase/firestore"; 
+import { collection, doc, getDocs } from "firebase/firestore";
 import { useEffect } from 'react';
-
+import add from '../add.png'
 
 
 function Dashboard() {
-  const[result,setResult] =useState([])
-  const getdata = async()=>{
-    const docRef = doc(db, auth.currentUser.email, "202311061236");
-    const docSnap = await getDoc(docRef);
-    setResult(docSnap.data())
-
+  const [result, setResult] =useState([])
+  const getdata = async () => {
+    const docSnap = await getDocs(collection(db, auth.currentUser.email));
+    const documentsData = docSnap.docs.map(doc => ({
+      id: doc.id,
+      data: doc.data(),
+    }));
+    setResult(documentsData)
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     getdata()
-    console.log("Logging data from firestore")
+    console.log("Logging data from firestore" ,result)
   },[])
 
 
@@ -32,11 +34,21 @@ function Dashboard() {
           <h1 className='text-xs'>{auth.currentUser.displayName}</h1>
           <img className='w-8 rounded-full mx-1' src={auth.currentUser.photoURL} alt="User Image" />
         </div>
-
-
       </div>
-      <Memo Title={result.Title} Description={result.Description} />
 
+
+      <div className='p-10 w-fit grid gap-2 grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8' >
+        
+        {result.map(e=>{
+          return(
+            <Memo Title={e.data.T} Description={e.data.D} /> 
+          )
+        })}
+      </div>
+      <div className='flex justify-end px-5 items-center' >
+      <h1 className='px-2'>Add Notes</h1>
+      <img class="w-10 hover:rotate-180 duration-700 cursor-pointer" src={add}/>
+        </div>
     </div>
 
   )
