@@ -15,7 +15,8 @@ function Login() {
              
     })
   }
-  useEffect(()=>{},[user]);
+  useEffect(()=>{
+  },[user]);
 
 
   return (

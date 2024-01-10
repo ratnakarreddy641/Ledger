@@ -9,10 +9,14 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import { useNavigate } from 'react-router-dom'
+
 
 function Dashboard() {
   const [result, setResult] = useState([])
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
+
 
   const getdata = async () => {
     const docSnap = await getDocs(collection(db, auth.currentUser.email));
@@ -23,10 +27,13 @@ function Dashboard() {
     setResult(documentsData)
   }
   const setData = async () => {
+      var Title =document.getElementById("name").value
+      var Description = document.getElementById("desc").value
 
+      if(Title=='' && Description == ''){return}
     await addDoc(collection(db, auth.currentUser.email), {
-      T: document.getElementById("name").value,
-      D: document.getElementById("desc").value
+      T: Title,
+      D: Description
     });
     setOpen(false);
   }
@@ -38,6 +45,11 @@ function Dashboard() {
   const handleClose = () => {
     setOpen(false);
   };
+
+  const signOut = ()=>{
+      auth.signOut();
+      navigate("/");
+  }
 
   useEffect(() => {
     getdata()
@@ -51,7 +63,7 @@ function Dashboard() {
           <h1 className="text-center text-4xl font-black	"  >Ledger</h1>
           <h1 className='absolute text-xs right-0 -bottom-5'>By Epic Poet</h1>
         </div>
-        <div className='flex items-center bg-slate-200 rounded-3xl px-3 py-2 border hover:border-slate-400 cursor-pointer'>
+        <div className='flex items-center bg-slate-200 rounded-3xl px-3 py-2 border hover:border-slate-400 cursor-pointer' onClick={signOut}>
           <h1 className='text-xs'>{auth.currentUser.displayName}</h1>
           <img className='w-8 rounded-full mx-1' src={auth.currentUser.photoURL} alt="User Image" />
         </div>
