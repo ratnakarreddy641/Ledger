@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { auth, db } from '../Google/config';
 import Memo from '../Components/Memo';
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection,doc, query,onSnapshot, where, addDoc, getDocs, deleteDoc  } from "firebase/firestore";
 import add from '../add.png'
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -14,18 +14,24 @@ import { useNavigate } from 'react-router-dom'
 
 function Dashboard() {
   const [result, setResult] = useState([])
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
   const [clickdata, setCData]=useState([])
   const navigate = useNavigate();
 
 
   const getdata = async () => {
-    const docSnap = await getDocs(collection(db, auth.currentUser.email));
-    const documentsData = docSnap.docs.map(doc => ({
-      id: doc.id,
-      data: doc.data(),
-    }));
-    setResult(documentsData)
+    const collectionRef = collection(db,auth.currentUser.email);
+
+    // Use onSnapshot to listen for real-time updates
+    const unsubscribe = onSnapshot(collectionRef,(snapshot) => {
+      const updatedDocuments = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        data:doc.data(),
+      }));
+      setResult(updatedDocuments);
+    });
+
+
   }
   const setData = async () => {
     var Title = document.getElementById("name").value
@@ -36,7 +42,14 @@ function Dashboard() {
       T: Title,
       D: Description
     });
-    setOpen(false);
+    handleClose();
+  }
+
+  const deleteMemo = async()=>{
+    console.log(clickdata.id)
+    await deleteDoc(doc(db,auth.currentUser.email,clickdata.id)) 
+    setOpen(false)
+    closeDialog()
   }
 
   const handleClickOpen = () => {
@@ -66,8 +79,7 @@ function Dashboard() {
 
   useEffect(() => {
     getdata()
-    console.log("Logging data from firestore", result)
-  }, [open])
+  }, [])
 
   return (
     <div>
@@ -89,7 +101,7 @@ function Dashboard() {
           return (
             
               <div onClick={()=>{
-                setCData(e.data)
+                setCData(e)
                 openDialog()
               }}><Memo Title={e.data.T} Description={e.data.D} /></div>
           )
@@ -98,9 +110,10 @@ function Dashboard() {
         {isOpen && (
           <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-6 shadow-md bg-slate-100">
             <div className="text-center">
-              <p className="text-base font-semibold">{clickdata.T}</p>
-              <p>{clickdata.D}</p>
-              <button onClick={closeDialog} className="mt-4 bg-gray-500 text-white py-2 px-4 rounded">Close</button>
+              <p className="text-base font-semibold">{clickdata.data.T}</p>
+              <p>{clickdata.data.D}</p>
+              <button onClick={closeDialog} className="mt-4 mx-2 bg-gray-500 text-white py-2 px-4 rounded">Close</button>
+              <button onClick={deleteMemo} className="mt-4 bg-gray-500 text-white py-2 px-4 rounded" >Delete Memo</button>
             </div>
           </div>
         )}
@@ -118,6 +131,7 @@ function Dashboard() {
           </DialogContent>
           <DialogActions>
             <Button onClick={setData}>Add Ledger</Button>
+            
           </DialogActions>
         </Dialog>
       </div>
