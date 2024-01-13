@@ -14,7 +14,8 @@ import { useNavigate } from 'react-router-dom'
 
 function Dashboard() {
   const [result, setResult] = useState([])
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
+  const [clickdata, setCData]=useState([])
   const navigate = useNavigate();
 
 
@@ -27,10 +28,10 @@ function Dashboard() {
     setResult(documentsData)
   }
   const setData = async () => {
-      var Title =document.getElementById("name").value
-      var Description = document.getElementById("desc").value
+    var Title = document.getElementById("name").value
+    var Description = document.getElementById("desc").value
 
-      if(Title=='' && Description == ''){return}
+    if (Title == '' && Description == '') { return }
     await addDoc(collection(db, auth.currentUser.email), {
       T: Title,
       D: Description
@@ -46,10 +47,22 @@ function Dashboard() {
     setOpen(false);
   };
 
-  const signOut = ()=>{
-      auth.signOut();
-      navigate("/");
+  const signOut = () => {
+    auth.signOut();
+    navigate("/");
   }
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openDialog = () => {
+    console.log("Clicked")
+    setIsOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsOpen(false);
+  };
+
 
   useEffect(() => {
     getdata()
@@ -74,9 +87,23 @@ function Dashboard() {
 
         {result.map(e => {
           return (
-            <Memo Title={e.data.T} Description={e.data.D} />
+            
+              <div onClick={()=>{
+                setCData(e.data)
+                openDialog()
+              }}><Memo Title={e.data.T} Description={e.data.D} /></div>
           )
         })}
+
+        {isOpen && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-6 shadow-md bg-slate-100">
+            <div className="text-center">
+              <p className="text-base font-semibold">{clickdata.T}</p>
+              <p>{clickdata.D}</p>
+              <button onClick={closeDialog} className="mt-4 bg-gray-500 text-white py-2 px-4 rounded">Close</button>
+            </div>
+          </div>
+        )}
       </div>
       <div className='flex justify-end px-5 items-center' onClick={handleClickOpen} >
         <h1 className='px-2'>Add Notes</h1>
